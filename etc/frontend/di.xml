@@ -1,0 +1,12 @@
+<?xml version="1.0"?>
+<!--
+/**
+ * Copyright © 2020 Studio Raz. All rights reserved.
+ * See LICENSE.txt for license details.
+ */
+-->
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:ObjectManager/etc/config.xsd">
+    <type name="Magento\Catalog\ViewModel\Product\Breadcrumbs">
+        <plugin name="breadcrumbsFullPath" type="SR\Breadcrumb\Plugin\Magento\Catalog\ViewModel\Breadcrumbs"/>
+    </type>
+</config>
