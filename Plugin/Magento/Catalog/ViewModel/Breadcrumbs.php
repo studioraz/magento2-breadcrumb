@@ -58,6 +58,7 @@ class Breadcrumbs
         try {
             $collection
                 ->addIsActiveFilter()
+                ->addAttributeToFilter('include_in_menu', 1)
                 ->addAttributeToSelect('name')
                 ->setOrder('level', 'DESC');
         } catch (LocalizedException $e) {
@@ -71,7 +72,7 @@ class Breadcrumbs
         foreach ($collection as $category) {
             $pool[$category->getId()] = $category;
 
-            if (!$category->getIsActive()) {
+            if (!$category->getIsActive() && !$category->getIsInludeInMenu()) {
                 continue;
             }
 
@@ -81,7 +82,9 @@ class Breadcrumbs
             try {
                 while ($child->getLevel() > 1 && $parent = $child->getParentCategory()) {
                     $pool[$parent->getId()] = $parent;
-                    if (!$parent->getIsActive()) {
+
+                    //skip if parent category not active or not in menu
+                    if (!$parent->getIsActive() || !$parent->getIncludeInMenu()) {
                         $category = null;
                         break;
                     }
