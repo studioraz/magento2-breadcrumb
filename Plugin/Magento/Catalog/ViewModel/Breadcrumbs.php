@@ -24,21 +24,32 @@ class Breadcrumbs
     private $catalogData;
 
     /**
-     * @var
+     * @var StoreManagerInterface
      */
-    private $storeManagerInterface;
+    private StoreManagerInterface $storeManager;
 
     /**
      * Breadcrumbs constructor.
      * @param StoreManagerInterface $storeManagerInterface
      * @param Data $catalogData
      */
+
+    /**
+     * Instance of category collection.
+     *
+     * @var Collection
+     */
+    protected Collection $categoryCollection;
+
     public function __construct(
         StoreManagerInterface $storeManagerInterface,
-        Data $catalogData
-    ) {
+        Data                  $catalogData,
+        Collection            $categoryCollection
+    )
+    {
         $this->storeManager = $storeManagerInterface;
         $this->catalogData = $catalogData;
+        $this->categoryCollection = $categoryCollection;
     }
 
     /**
@@ -60,24 +71,20 @@ class Breadcrumbs
     /**
      * @param Product $product
      * @return array
+     * @throws \Magento\Framework\Exception\NoSuchEntityException
+     * @throws LocalizedException
      */
     public function getFullCategoryPath(Product $product): ?array
     {
         /** @var Collection $collection */
-        $collection = $product->getCategoryCollection();
-        $rootCategoryId = $this->getRootCategoryId();
-        try {
-            $collection
-                ->addAttributeToFilter('path', ['like' => "1/{$rootCategoryId}/%"])
-                ->addAttributeToSelect('name')
-                ->addAttributeToSelect('include_in_menu')
-                ->addAttributeToSelect('is_active')
-                ->setOrder('level', 'DESC');
-        } catch (LocalizedException $e) {
-            return null;
+        $collection = $this->getProductCategories($product);
+
+        if ($collection->count() == 0) {
+            return [];
         }
 
-        $pool           = [];
+
+        $pool = [];
         $targetCategory = null;
 
         /** @var Category $category */
@@ -117,14 +124,14 @@ class Breadcrumbs
 
         if ($targetCategory) {
             $pathInStore = $category->getPathInStore();
-            $pathIds     = array_reverse(explode(',', $pathInStore));
+            $pathIds = array_reverse(explode(',', $pathInStore));
 
             foreach ($pathIds as $categoryId) {
                 if (isset($pool[$categoryId]) && $pool[$categoryId]->getName()) {
                     $category = $pool[$categoryId];
-                    $path[]   = [
+                    $path[] = [
                         'label' => $category->getName(),
-                        'link'  => $category->getUrl(),
+                        'link' => $category->getUrl(),
                     ];
                 }
             }
@@ -134,15 +141,52 @@ class Breadcrumbs
     }
 
     /**
+     * @throws \Magento\Framework\Exception\NoSuchEntityException
+     * @throws LocalizedException
+     */
+    private function getProductCategories(Product $product)
+    {
+
+        $rootCategoryId = $this->getRootCategoryId();
+
+        $collection = $product->getCategoryCollection()
+            ->addAttributeToFilter('path', ['like' => "1/{$rootCategoryId}/%"])
+            ->addAttributeToSelect('name')
+            ->addAttributeToSelect('is_active')
+            ->setOrder('level', 'DESC');
+
+
+        if ($collection->count() < 2) {
+            return $collection;
+        }
+
+        /**
+         * move referee category, if exists, to the beginning of the category ids array to give it higher priority.
+         */
+        if ($categoryId = $product->getCategoryId()) {
+            $currentCategory = $collection->getItemById($categoryId);
+            $collection->removeItemByKey($categoryId);
+            $categories = $collection->getItems();
+            $collection->removeAllItems();
+            $collection->addItem($currentCategory);
+            foreach ($categories as $category) {
+                $collection->addItem($category);
+            }
+        }
+
+
+        return $collection;
+    }
+
+    /**
      * @return int
      * @throws \Magento\Framework\Exception\NoSuchEntityException
      */
-    public function getRootCategoryId()
+    private function getRootCategoryId(): int
     {
         // get store group id for current store
         $storeGroupId = $this->storeManager->getStore()->getStoreGroupId();
         // get root category id
-        $rootCategoryId = $this->storeManager->getGroup($storeGroupId)->getRootCategoryId();
-        return $rootCategoryId;
+        return (int)$this->storeManager->getGroup($storeGroupId)->getRootCategoryId();
     }
 }
