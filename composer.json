@@ -3,7 +3,7 @@
     "description": "Studio Raz Magento 2 Breadcrumb Module",
     "type": "magento2-module",
     "prefer-stable": true,
-    "version": "1.0.0",
+    "version": "1.0.1",
     "license": [
         "proprietary"
     ],
