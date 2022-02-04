@@ -91,7 +91,7 @@ class Breadcrumbs
         foreach ($collection as $category) {
             $pool[$category->getId()] = $category;
 
-            if (!$category->getIsActive() && !$category->getIncludeInMenu()) {
+            if (!$category->getIsActive()) {
                 continue;
             }
 
@@ -103,7 +103,7 @@ class Breadcrumbs
                     $pool[$parent->getId()] = $parent;
 
                     //skip if parent category not active or not in menu
-                    if (!$parent->getIsActive() || !$parent->getIncludeInMenu() && $parent->getId() != $rootCategoryId) {
+                    if (!$parent->getIsActive()) {
                         $category = null;
                         break;
                     }
