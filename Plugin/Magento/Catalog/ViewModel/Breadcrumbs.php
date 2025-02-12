@@ -155,7 +155,6 @@ class Breadcrumbs
             ->addAttributeToSelect('is_active')
             ->setOrder('level', 'DESC');
 
-
         if ($collection->count() < 2) {
             return $collection;
         }
@@ -165,6 +164,9 @@ class Breadcrumbs
          */
         if ($categoryId = $product->getCategoryId()) {
             $currentCategory = $collection->getItemById($categoryId);
+            if (!$currentCategory) {
+                return $collection;
+            }
             $collection->removeItemByKey($categoryId);
             $categories = $collection->getItems();
             $collection->removeAllItems();

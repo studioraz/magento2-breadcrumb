@@ -3,7 +3,7 @@
     "description": "Studio Raz Magento 2 Breadcrumb Module",
     "type": "magento2-module",
     "prefer-stable": true,
-    "version": "1.0.1",
+    "version": "1.0.2",
     "license": [
         "proprietary"
     ],
@@ -26,7 +26,7 @@
         {
             "name": "Studio Raz",
             "email": "info@studioraz.co.il",
-            "homepage": "http://www.studio-raz.com",
+            "homepage": "https://www.studio-raz.com",
             "role": "Developer"
         }
     ]
